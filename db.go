@@ -1,6 +1,7 @@
 package isunippets
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"os"
@@ -89,7 +90,7 @@ func SelectNamedWithIn(db *sqlx.DB) ([]SampleTableRow, error) {
 }
 
 func SetUpSampleDatabase() (*sqlx.DB, error) {
-	file, err := os.CreateTemp("", uuid.New().String())
+	file, err := os.CreateTemp("", fmt.Sprintf("isunippets_%s", uuid.New().String()))
 	if err != nil {
 		return nil, err
 	}
