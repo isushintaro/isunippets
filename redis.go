@@ -28,6 +28,14 @@ func GetRedisClient() *redis.Client {
 	return rdb
 }
 
+type RedisCacheValue struct {
+	String string            `json:"string"`
+	Int    int               `json:"int"`
+	Bool   bool              `json:"bool"`
+	Slice  []string          `json:"slice"`
+	Map    map[string]string `json:"map"`
+}
+
 type RedisBatchRequest struct {
 	QueueName string `json:"queueName"`
 	QueuedAt  string `json:"queuedAt"`
@@ -48,7 +56,7 @@ const (
 	redisBatchRequestNormal = "redisBatchRequest:normal"
 )
 
-func FlushRedisBatchRequests() error {
+func ClearRedis() error {
 	rdb := GetRedisClient()
 
 	statusCmd := rdb.FlushAll(ctx)
@@ -133,4 +141,36 @@ func PutRedisBatchRequest(request RedisBatchRequest, queueName string) error {
 
 	redisLogger.Debug("RPush complete")
 	return nil
+}
+
+func PutRedisCache(key string, value RedisCacheValue) error {
+	dataStr, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+
+	rdb := GetRedisClient()
+	err = rdb.Set(ctx, key, dataStr, time.Duration(0)).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetRedisCache(key string) (RedisCacheValue, error) {
+	rdb := GetRedisClient()
+	getCmd := rdb.Get(ctx, key)
+	if getCmd.Err() != nil {
+		return RedisCacheValue{}, getCmd.Err()
+	}
+
+	valBytes := getCmd.Val()
+
+	var value RedisCacheValue
+	err := json.Unmarshal([]byte(valBytes), &value)
+	if err != nil {
+		return RedisCacheValue{}, err
+	}
+
+	return value, nil
 }
