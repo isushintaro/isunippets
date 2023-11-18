@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 	"github.com/redis/go-redis/v9"
 	"os"
 	"time"
@@ -13,6 +14,10 @@ var (
 	redisLogger = echo.New().Logger
 	ctx         = context.Background()
 )
+
+func SetRedisLogLevel(level log.Lvl) {
+	redisLogger.SetLevel(level)
+}
 
 func GetRedisClient() *redis.Client {
 	rdb := redis.NewClient(&redis.Options{

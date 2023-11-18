@@ -3,8 +3,6 @@ package isunippets
 import (
 	"errors"
 	"github.com/alicebob/miniredis/v2"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
@@ -30,8 +28,7 @@ func SetUpRedisForTesting() (*miniredis.Miniredis, error) {
 		return nil, err
 	}
 
-	redisLogger = echo.New().Logger
-	redisLogger.SetLevel(log.DEBUG)
+	//SetRedisLogLevel(log.DEBUG)
 
 	return s, nil
 }
@@ -45,6 +42,17 @@ func TestGetRedisClient(t *testing.T) {
 
 	rdb := GetRedisClient()
 	assert.NotNil(rdb)
+}
+
+func TestPutRedisBatchRequest(t *testing.T) {
+	assert := assert.New(t)
+
+	s, err := SetUpRedisForTesting()
+	assert.NoError(err)
+	defer s.Close()
+
+	err = PutRedisBatchRequest(RedisBatchRequest{}, redisBatchRequestNormal)
+	assert.NoError(err)
 }
 
 func TestRunRedisBatchMainLoop(t *testing.T) {

@@ -11,9 +11,13 @@ func ShowLog(e *echo.Echo, show bool) error {
 		e.Debug = true
 		e.Logger.SetLevel(log.DEBUG)
 		e.Use(middleware.Logger())
+
+		SetRedisLogLevel(log.DEBUG)
 	} else {
 		e.Debug = false
 		e.Logger.SetLevel(log.OFF)
+
+		SetRedisLogLevel(log.OFF)
 	}
 
 	return nil
