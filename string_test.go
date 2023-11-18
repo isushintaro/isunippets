@@ -40,3 +40,10 @@ func TestRegexpIsMatch(t *testing.T) {
 		})
 	}
 }
+
+func TestGenerateUUID(t *testing.T) {
+	assert := assert.New(t)
+
+	actual := GenerateUUID()
+	assert.NotEmpty(actual)
+}
