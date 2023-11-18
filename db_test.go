@@ -12,6 +12,7 @@ func TestBulkInsert(t *testing.T) {
 
 	db, err := SetUpSampleDatabase()
 	assert.NoError(err)
+	defer db.Close()
 
 	ts := time.Now().Unix()
 	assert.NoError(BulkInsert(db))
@@ -31,6 +32,7 @@ func TestSelectNamedWithIn(t *testing.T) {
 
 	db, err := SetUpSampleDatabase()
 	assert.NoError(err)
+	defer db.Close()
 
 	_, err = db.NamedExec("INSERT INTO `sample` (`string_value`, `int_value`, `timestamp_value`, `bool_value`) VALUES (:string_value, :int_value, :timestamp_value, :bool_value)", []SampleTableRow{
 		{
