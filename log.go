@@ -9,7 +9,7 @@ import (
 func ShowLog(e *echo.Echo, show bool) error {
 	if show {
 		e.Debug = true
-		e.Logger.SetLevel(log.ERROR)
+		e.Logger.SetLevel(log.DEBUG)
 		e.Use(middleware.Logger())
 	} else {
 		e.Debug = false
