@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"sort"
+	"sync"
 	"testing"
 	"time"
 )
@@ -58,7 +59,35 @@ func TestRunConcurrent(t *testing.T) {
 	assert.Equal(expected, requests)
 }
 
-func TestRunConcurrent_WithError(t *testing.T) {
+func TestRunConcurrent_WithMutex(t *testing.T) {
+	assert := assert.New(t)
+
+	var requests []*int
+	for i := 0; i < 100000; i++ {
+		requests = append(requests, &i)
+	}
+
+	var mu sync.Mutex
+	cnt := 0
+
+	start := time.Now()
+	err := RunConcurrent(requests, nil, func(c context.Context, r *int, i int) (*int, error) {
+		time.Sleep(50 * time.Millisecond)
+		mu.Lock()
+		cnt++
+		mu.Unlock()
+		time.Sleep(50 * time.Millisecond)
+		return nil, nil
+	})
+	assert.NoError(err)
+
+	elapsed := time.Since(start)
+	assert.LessOrEqual(elapsed.Seconds(), 0.5)
+	assert.Equal(100000, cnt)
+}
+
+func TestRunConcurrent_With(t *testing.T) {
+	// FIXME: 期待通りの動作（エラー時に即時実行終了する）をしていない
 	assert := assert.New(t)
 
 	type MyConcurrencyRequest struct {
