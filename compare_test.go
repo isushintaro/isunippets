@@ -114,6 +114,7 @@ func TestCompareJson(t *testing.T) {
 	}
 	marshalledMyStruct, err := json.Marshal(myStruct)
 	assert.NoError(err)
+	marshalledMyStructString := string(marshalledMyStruct)
 
 	differentMyStruct := MyStruct{
 		String: "stringDiff",
@@ -138,29 +139,78 @@ func TestCompareJson(t *testing.T) {
 	}
 	marshalledDifferentMyStruct, err := json.Marshal(differentMyStruct)
 	assert.NoError(err)
+	marshalledDifferentMyStructString := string(marshalledDifferentMyStruct)
 
 	cases := []struct {
 		lhs      interface{}
 		rhs      interface{}
 		expected bool
 	}{
-		// 基本型
+		// 基本データ型
 		{lhs: nil, rhs: nil, expected: true},
-		{lhs: 1, rhs: 1, expected: true},
 		{lhs: "1", rhs: "1", expected: true},
 		{lhs: "\"\"", rhs: "\"\"", expected: true},
-		{lhs: "", rhs: "", expected: false},
+		{lhs: "\"1\"", rhs: "\"1\"", expected: true},
+		{lhs: "false", rhs: "false", expected: true},
+		{lhs: "null", rhs: "null", expected: true},
+		{lhs: "1", rhs: "1.0", expected: true},
+		{lhs: "{}", rhs: "{}", expected: true},
+
+		// JSONリテラルになったときに妥当な文字列
+		{lhs: 1, rhs: 1, expected: true},
+		{lhs: -1.234, rhs: -1.234, expected: true},
+		{lhs: 2, rhs: "2", expected: true},
+		{lhs: nil, rhs: "null", expected: true},
+		{lhs: true, rhs: true, expected: true},
+		{lhs: false, rhs: "false", expected: true},
+
+		// データ型は考慮される
+		{lhs: "\"1\"", rhs: "1", expected: false},
+
+		// 値が違えばエラー
+		{lhs: "1.2345", rhs: "1.2346", expected: false},
+		{lhs: "\"hello\"", rhs: "\"Hello\"", expected: false},
+
+		// 空値はエラー
 		{lhs: nil, rhs: "", expected: false},
 		{lhs: "", rhs: nil, expected: false},
+		{lhs: "", rhs: "", expected: false},
 
+		// JSON構造体
 		{lhs: myStruct, rhs: myStruct, expected: true},
-		{lhs: myStruct, rhs: string(marshalledMyStruct), expected: true},
-		{lhs: myStruct, rhs: []byte(string(marshalledMyStruct)), expected: true},
+		{lhs: myStruct, rhs: &myStruct, expected: true},
+		{lhs: myStruct, rhs: marshalledMyStruct, expected: true},
+		{lhs: myStruct, rhs: marshalledMyStructString, expected: true},
 
+		// ポインタ変換された場合は不一致
+		{lhs: myStruct, rhs: &marshalledMyStruct, expected: false},
+		{lhs: myStruct, rhs: &marshalledMyStructString, expected: false},
+
+		// JSON構造体の中身が違えばエラー
 		{lhs: myStruct, rhs: nil, expected: false},
 		{lhs: myStruct, rhs: differentMyStruct, expected: false},
-		{lhs: myStruct, rhs: string(marshalledDifferentMyStruct), expected: false},
-		{lhs: myStruct, rhs: []byte(string(marshalledDifferentMyStruct)), expected: false},
+		{lhs: myStruct, rhs: &differentMyStruct, expected: false},
+		{lhs: myStruct, rhs: marshalledDifferentMyStruct, expected: false},
+		{lhs: myStruct, rhs: &marshalledDifferentMyStruct, expected: false},
+		{lhs: myStruct, rhs: marshalledDifferentMyStructString, expected: false},
+		{lhs: myStruct, rhs: &marshalledDifferentMyStructString, expected: false},
+
+		// 書式が違うだけならOK
+		{
+			lhs:      "{\"str\": \"慎太郎\", \"int\": 1}",
+			rhs:      "{\n\"int\":1, \"str\":\t\t\"\\u614e\\u592a\\u90ce\"    }",
+			expected: true,
+		},
+
+		// 値の順番が違うとエラー
+		{
+			lhs:      "{\"ary\": [1, 2]}",
+			rhs:      "{\"ary\": [2, 1]}",
+			expected: false,
+		},
+
+		// 形式不正
+		{lhs: "{", rhs: "{", expected: false},
 	}
 
 	for i, tt := range cases {

@@ -17,12 +17,11 @@ func Compare(lhs, rhs interface{}) error {
 }
 
 func CompareJson(lhs, rhs interface{}) error {
-	if lhs == nil && rhs == nil {
-		return nil
-	} else if lhs == nil {
-		return errors.New(fmt.Sprintf("lhs is nil: rhs=%p", rhs))
-	} else if rhs == nil {
-		return errors.New(fmt.Sprintf("rhs is nil: lhs=%p", lhs))
+	if lhs == nil {
+		lhs = "null"
+	}
+	if rhs == nil {
+		rhs = "null"
 	}
 
 	var lhsBytes, rhsBytes []byte
