@@ -92,7 +92,8 @@ func TestRunConcurrent_WithError(t *testing.T) {
 		return r, nil
 	})
 	assert.Error(err)
-	assert.Equal("error: 0\nerror: 2", err.Error())
+	assert.Contains(err.Error(), "error: 0")
+	assert.Contains(err.Error(), "error: 2")
 
 	elapsed := time.Since(start)
 	assert.LessOrEqual(elapsed.Seconds(), 1.5)

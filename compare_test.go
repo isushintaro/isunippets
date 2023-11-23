@@ -81,12 +81,14 @@ func TestCompareJson(t *testing.T) {
 	assert := assert.New(t)
 
 	type MyStruct struct {
-		String   string            `json:"string"`
-		Int      int               `json:"int"`
-		Bool     bool              `json:"bool"`
-		Slice    []string          `json:"slice"`
-		Map      map[string]string `json:"map"`
-		MyStruct *MyStruct         `json:"my_struct"`
+		String            string            `json:"string"`
+		Int               int               `json:"int"`
+		Bool              bool              `json:"bool"`
+		Slice             []string          `json:"slice"`
+		Map               map[string]string `json:"map"`
+		MyStruct          *MyStruct         `json:"my_struct"`
+		IgnoreString      string            `json:"-"`
+		UnSupportedString string
 	}
 
 	myStruct := MyStruct{
@@ -107,6 +109,8 @@ func TestCompareJson(t *testing.T) {
 			},
 			MyStruct: nil,
 		},
+		IgnoreString:      "ignore",
+		UnSupportedString: "unSupported",
 	}
 	marshalledMyStruct, err := json.Marshal(myStruct)
 	assert.NoError(err)
@@ -129,6 +133,8 @@ func TestCompareJson(t *testing.T) {
 			},
 			MyStruct: nil,
 		},
+		IgnoreString:      "ignoreDiff",
+		UnSupportedString: "unSupportedDiff",
 	}
 	marshalledDifferentMyStruct, err := json.Marshal(differentMyStruct)
 	assert.NoError(err)
