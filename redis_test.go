@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/alicebob/miniredis/v2"
+	"github.com/labstack/gommon/log"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
@@ -29,7 +30,7 @@ func SetUpRedisForTesting() (*miniredis.Miniredis, error) {
 		return nil, err
 	}
 
-	//SetRedisLogLevel(log.DEBUG)
+	SetRedisLogLevel(log.DEBUG)
 
 	return s, nil
 }
