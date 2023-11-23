@@ -12,7 +12,7 @@ import (
 
 var (
 	redisLogger = echo.New().Logger
-	ctx         = context.Background()
+	redisCtx    = context.Background()
 )
 
 func SetRedisLogLevel(level log.Lvl) {
@@ -59,7 +59,7 @@ const (
 func ClearRedis() error {
 	rdb := GetRedisClient()
 
-	statusCmd := rdb.FlushAll(ctx)
+	statusCmd := rdb.FlushAll(redisCtx)
 	if statusCmd.Err() != nil {
 		redisLogger.Errorf("failed to FlushAll: %v", statusCmd.Err())
 		return statusCmd.Err()
@@ -75,11 +75,11 @@ func RunRedisBatchMainLoop(timeout time.Duration, continueOnError bool, process 
 		Logger: redisLogger,
 	}
 	for {
-		highLen := rdb.LLen(ctx, redisBatchRequestHigh).Val()
-		normalLen := rdb.LLen(ctx, redisBatchRequestNormal).Val()
+		highLen := rdb.LLen(redisCtx, redisBatchRequestHigh).Val()
+		normalLen := rdb.LLen(redisCtx, redisBatchRequestNormal).Val()
 		redisLogger.Debugf("queue length high=%v normal=%v", highLen, normalLen)
 
-		blPopCmd := rdb.BLPop(ctx, timeout, redisBatchRequestHigh, redisBatchRequestNormal)
+		blPopCmd := rdb.BLPop(redisCtx, timeout, redisBatchRequestHigh, redisBatchRequestNormal)
 		if blPopCmd.Err() != nil {
 			if continueOnError {
 				redisLogger.Errorf("failed to BLPop: %v", blPopCmd.Err())
@@ -133,7 +133,7 @@ func PutRedisBatchRequest(request RedisBatchRequest, queueName string) error {
 	requestStr := string(requestBytes)
 	redisLogger.Debugf("try RPush: %v, %v", queueName, requestStr)
 
-	rPushCmd := client.RPush(ctx, queueName, requestStr)
+	rPushCmd := client.RPush(redisCtx, queueName, requestStr)
 	if rPushCmd.Err() != nil {
 		redisLogger.Errorf("failed to RPush: %v", rPushCmd.Err())
 		return rPushCmd.Err()
@@ -150,7 +150,7 @@ func PutRedisCache(key string, value RedisCacheValue) error {
 	}
 
 	rdb := GetRedisClient()
-	err = rdb.Set(ctx, key, dataStr, time.Duration(0)).Err()
+	err = rdb.Set(redisCtx, key, dataStr, time.Duration(0)).Err()
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func PutRedisCache(key string, value RedisCacheValue) error {
 
 func GetRedisCache(key string) (RedisCacheValue, error) {
 	rdb := GetRedisClient()
-	getCmd := rdb.Get(ctx, key)
+	getCmd := rdb.Get(redisCtx, key)
 	if getCmd.Err() != nil {
 		return RedisCacheValue{}, getCmd.Err()
 	}
