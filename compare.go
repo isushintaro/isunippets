@@ -7,7 +7,8 @@ import (
 )
 
 func Compare(lhs, rhs interface{}) error {
-	result := cmp.Diff(lhs, rhs)
+	opts := cmp.AllowUnexported(lhs, rhs)
+	result := cmp.Diff(lhs, rhs, opts)
 	if result != "" {
 		return errors.New(fmt.Sprintf("has diff: lhs=%p, rhs=%p, diff=%s", lhs, rhs, result))
 	} else {
