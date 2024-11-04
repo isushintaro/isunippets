@@ -5,15 +5,15 @@ install:
 	go install
 
 .PHONY: test
-test:
+test: install
 	go test -v ./...
 
 .PHONY: fmt
-fmt:
+fmt: install
 	go fmt ./...
 
 .PHONY: vet
-vet:
+vet: install
 	go vet ./...
 
 .PHONY: check
