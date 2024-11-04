@@ -1,5 +1,5 @@
 # isunippets
 
 ```bash
-go test -v
+make check
 ```
