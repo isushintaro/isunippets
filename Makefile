@@ -1,5 +1,9 @@
 #!/usr/bin/make -f
 
+.PHONY: install
+install:
+	go install
+
 .PHONY: test
 test:
 	go test -v ./...
