@@ -1,19 +1,15 @@
 #!/usr/bin/make -f
 
-.PHONY: install
-install:
-	go install
-
 .PHONY: test
-test: install
+test:
 	go test -v ./...
 
 .PHONY: fmt
-fmt: install
+fmt:
 	go fmt ./...
 
 .PHONY: vet
-vet: install
+vet:
 	go vet ./...
 
 .PHONY: check
