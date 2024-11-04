@@ -35,21 +35,19 @@ func TestRunPprof(t *testing.T) {
 	tempDir, err := os.MkdirTemp("", "TestRunPprof")
 	assert.NoError(err)
 
-	count(tempDir)
+	func() {
+		option := &PprofOption{
+			ProfilePath: tempDir,
+		}
+		defer RunPprof(option).Stop()
+
+		summary := 0
+		for i := 0; i < 1000000; i++ {
+			summary += i
+		}
+	}()
 
 	stat, err := os.Stat(path.Join(tempDir, "cpu.pprof"))
 	assert.NoError(err)
 	assert.Greater(stat.Size(), int64(0))
-}
-
-func count(profilePath string) {
-	option := &PprofOption{
-		ProfilePath: profilePath,
-	}
-	defer RunPprof(option).Stop()
-
-	summary := 0
-	for i := 0; i < 1000000; i++ {
-		summary += i
-	}
 }
