@@ -14,3 +14,7 @@ vet:
 
 .PHONY: check
 check: fmt vet test
+
+.PHONY: pprof
+pprof:
+	go tool pprof -http=:3104 cpu.pprof
