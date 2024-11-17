@@ -3,6 +3,8 @@ package isunippets
 import (
 	"bytes"
 	"github.com/stretchr/testify/assert"
+	"io"
+	"os"
 	"testing"
 )
 
@@ -32,18 +34,22 @@ func TestGetFileCacheData(t *testing.T) {
 func TestPutFileCacheStream(t *testing.T) {
 	assert := assert.New(t)
 
-	expected := new(bytes.Buffer)
-	expected.WriteString("test")
-
-	err := PutFileCacheStream(expected, "TestPutFileCacheStream.txt")
+	f, err := os.Open("gopher.png")
 	assert.NoError(err)
 
-	stream, err := GetFileCacheStream("TestPutFileCacheStream.txt")
+	err = PutFileCacheStream(f, "TestPutFileCacheStream.png")
+	assert.NoError(err)
+
+	reader, err := GetFileCacheStream("TestPutFileCacheStream.png")
 	assert.NoError(err)
 
 	actual := new(bytes.Buffer)
-	_, err = actual.ReadFrom(stream)
-	assert.Equal([]byte("test"), actual.Bytes())
+	_, err = io.Copy(actual, reader)
+	assert.NoError(err)
+
+	expected, err := os.ReadFile("gopher.png")
+	assert.NoError(err)
+	assert.Equal(expected, actual.Bytes())
 }
 
 func TestPutFileCacheData(t *testing.T) {
