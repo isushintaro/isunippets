@@ -20,8 +20,8 @@ func CleanupFileCache() error {
 }
 
 func PutFileCacheData(data []byte, fileName string) error {
-	baseDir := fileCacheBaseDir
-	filePath := path.Join(baseDir, fileName)
+	filePath := path.Join(fileCacheBaseDir, fileName)
+	baseDir := path.Dir(filePath)
 
 	if _, err := os.Stat(baseDir); os.IsNotExist(err) {
 		if err := os.MkdirAll(baseDir, os.ModePerm); err != nil {
