@@ -1,13 +1,14 @@
 package isunippets
 
 import (
+	"fmt"
 	"github.com/patrickmn/go-cache"
 	"time"
 )
 
 var (
-	inMemoryCache    = cache.New(time.Hour, time.Hour)
-	inMemoryCacheKey = "data"
+	inMemoryCache          = cache.New(time.Hour, time.Hour)
+	inMemoryCacheKeyPrefix = "data"
 )
 
 type InMemoryCacheData struct {
@@ -16,15 +17,18 @@ type InMemoryCacheData struct {
 	Bool   bool
 	Slice  []string
 	Map    map[string]string
+	Bytes  []byte
 }
 
-func PutInMemoryCacheData(value *InMemoryCacheData) error {
-	inMemoryCache.Set(inMemoryCacheKey, value, cache.DefaultExpiration)
+func PutInMemoryCacheData(value *InMemoryCacheData, userId int64) error {
+	key := fmt.Sprintf("%s-%d", inMemoryCacheKeyPrefix, userId)
+	inMemoryCache.Set(key, value, cache.DefaultExpiration)
 	return nil
 }
 
-func GetInMemoryCacheData() (*InMemoryCacheData, bool) {
-	rawValue, ok := inMemoryCache.Get(inMemoryCacheKey)
+func GetInMemoryCacheData(userId int64) (*InMemoryCacheData, bool) {
+	key := fmt.Sprintf("%s-%d", inMemoryCacheKeyPrefix, userId)
+	rawValue, ok := inMemoryCache.Get(key)
 	if !ok {
 		return nil, false
 	}

@@ -1,6 +1,7 @@
 package isunippets
 
 import (
+	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -11,7 +12,9 @@ func TestGetInMemoryCacheData(t *testing.T) {
 
 	inMemoryCache.Flush()
 
-	_, ok := GetInMemoryCacheData()
+	userId := int64(1)
+
+	_, ok := GetInMemoryCacheData(userId)
 	assert.False(ok)
 }
 
@@ -20,8 +23,10 @@ func TestPutInMemoryCacheData(t *testing.T) {
 
 	inMemoryCache.Flush()
 
+	userId := int64(1)
 	sliceValue := []string{"a", "b", "c"}
 	mapValue := map[string]string{"a": "b", "c": "d"}
+	bytesValue := []byte{0x01, 0x02, 0x03}
 
 	expected := InMemoryCacheData{
 		String: "value1",
@@ -29,19 +34,20 @@ func TestPutInMemoryCacheData(t *testing.T) {
 		Bool:   true,
 		Slice:  sliceValue,
 		Map:    mapValue,
+		Bytes:  bytesValue,
 	}
 
-	err := PutInMemoryCacheData(&expected)
+	err := PutInMemoryCacheData(&expected, userId)
 	assert.NoError(err)
 
-	// 値はコピーされない
 	expected.String = "value2"
 	expected.Int = 2
 	expected.Bool = false
 	sliceValue[0] = "d"
 	mapValue["a"] = "e"
+	bytesValue[0] = 0x04
 
-	raw, ok := inMemoryCache.Get(inMemoryCacheKey)
+	raw, ok := inMemoryCache.Get(fmt.Sprintf("%s-%d", inMemoryCacheKeyPrefix, userId))
 	assert.True(ok)
 
 	actual, ok := raw.(*InMemoryCacheData)
