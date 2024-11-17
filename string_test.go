@@ -47,3 +47,14 @@ func TestGenerateUUID(t *testing.T) {
 	actual := GenerateUUID()
 	assert.NotEmpty(actual)
 }
+
+func TestRandStringBytes(t *testing.T) {
+	assert := assert.New(t)
+
+	n := 10
+	actual := RandStringBytes(n)
+	assert.Len(actual, n)
+	for _, c := range actual {
+		assert.Contains(letterBytes, string(c))
+	}
+}
