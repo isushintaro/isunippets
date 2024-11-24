@@ -3,8 +3,9 @@ package isunippets
 import (
 	"math/rand"
 	"regexp"
+
+	"github.com/google/uuid"
 )
-import "github.com/google/uuid"
 
 var regexpFormat = regexp.MustCompile("^is_dirty=(true|false)$")
 

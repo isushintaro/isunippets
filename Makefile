@@ -4,6 +4,10 @@
 test:
 	go test -v ./...
 
+.PHONY: bench
+bench:
+	go test -v -bench . -cpu 1 -benchmem ./... -run Benchmark
+
 .PHONY: fmt
 fmt:
 	go fmt ./...
@@ -13,7 +17,7 @@ vet:
 	go vet ./...
 
 .PHONY: check
-check: fmt vet test
+check: fmt vet test bench
 
 .PHONY: pprof
 pprof:
