@@ -6,8 +6,7 @@ import (
 )
 
 type RunConcurrentOptions struct {
-	Concurrency   int
-	CancelOnError bool
+	Concurrency int
 }
 
 func RunConcurrent[T any](requests []*T, options *RunConcurrentOptions, execute func(context.Context, *T, int) (*T, error)) error {
@@ -19,12 +18,7 @@ func RunConcurrent[T any](requests []*T, options *RunConcurrentOptions, execute 
 		}
 	}
 
-	wp := p.WithContext(ctx).WithCollectErrored()
-	if options != nil {
-		if options.CancelOnError {
-			wp = wp.WithCancelOnError()
-		}
-	}
+	wp := p.WithContext(ctx).WithCancelOnError()
 
 	for i, r := range requests {
 		i := i

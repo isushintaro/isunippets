@@ -15,7 +15,6 @@ func TestRunConcurrent(t *testing.T) {
 	assert := assert.New(t)
 
 	type MyConcurrencyRequest struct {
-		index  int
 		params int
 		result int
 	}
@@ -33,7 +32,6 @@ func TestRunConcurrent(t *testing.T) {
 
 	start := time.Now()
 	err := RunConcurrent(requests, opts, func(c context.Context, r *MyConcurrencyRequest, i int) (*MyConcurrencyRequest, error) {
-		r.index = i
 		r.result = r.params + i
 
 		time.Sleep(1 * time.Second)
@@ -46,14 +44,14 @@ func TestRunConcurrent(t *testing.T) {
 	assert.LessOrEqual(elapsed.Seconds(), 2.5)
 
 	sort.Slice(requests, func(i, j int) bool {
-		return requests[i].index < requests[j].index
+		return requests[i].params < requests[j].params
 	})
 
 	expected := []*MyConcurrencyRequest{
-		{index: 0, params: 0, result: 0},
-		{index: 1, params: 2, result: 3},
-		{index: 2, params: 4, result: 6},
-		{index: 3, params: 6, result: 9},
+		{params: 0, result: 0},
+		{params: 2, result: 3},
+		{params: 4, result: 6},
+		{params: 6, result: 9},
 	}
 
 	assert.Equal(expected, requests)
@@ -86,12 +84,10 @@ func TestRunConcurrent_WithMutex(t *testing.T) {
 	assert.Equal(100000, cnt)
 }
 
-func TestRunConcurrent_With(t *testing.T) {
-	// FIXME: 期待通りの動作（エラー時に即時実行終了する）をしていない
+func TestRunConcurrent_WithError(t *testing.T) {
 	assert := assert.New(t)
 
 	type MyConcurrencyRequest struct {
-		index  int
 		params int
 		result int
 	}
@@ -103,20 +99,17 @@ func TestRunConcurrent_With(t *testing.T) {
 		{params: 6},
 	}
 
-	opts := &RunConcurrentOptions{
-		CancelOnError: true,
-	}
+	opts := &RunConcurrentOptions{}
 
 	start := time.Now()
 	err := RunConcurrent(requests, opts, func(c context.Context, r *MyConcurrencyRequest, i int) (*MyConcurrencyRequest, error) {
-		r.index = i
+		if r.params%2 == 0 {
+			return r, errors.New(fmt.Sprintf("error: %d", i))
+		}
+
 		r.result = r.params + i
 
 		time.Sleep(1 * time.Second)
-
-		if i%2 == 0 {
-			return r, errors.New(fmt.Sprintf("error: %d", i))
-		}
 
 		return r, nil
 	})
@@ -125,17 +118,17 @@ func TestRunConcurrent_With(t *testing.T) {
 	assert.Contains(err.Error(), "error: 2")
 
 	elapsed := time.Since(start)
-	assert.LessOrEqual(elapsed.Seconds(), 1.5)
+	assert.LessOrEqual(elapsed.Seconds(), 0.5)
 
 	sort.Slice(requests, func(i, j int) bool {
-		return requests[i].index < requests[j].index
+		return requests[i].params < requests[j].params
 	})
 
 	expected := []*MyConcurrencyRequest{
-		{index: 0, params: 0, result: 0},
-		{index: 1, params: 2, result: 3},
-		{index: 2, params: 4, result: 6},
-		{index: 3, params: 6, result: 9},
+		{params: 0, result: 0},
+		{params: 2, result: 0},
+		{params: 4, result: 0},
+		{params: 6, result: 0},
 	}
 
 	assert.Equal(expected, requests)
