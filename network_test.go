@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func TestUnixDomainSocket(t *testing.T) {
+func TestCreateUnixDomainSocket(t *testing.T) {
 	assert := assert.New(t)
 
 	// 空きポートを確認
@@ -70,6 +70,44 @@ func TestUnixDomainSocket(t *testing.T) {
 	assert.NoError(err)
 	assert.Equal(200, res.StatusCode())
 	assert.Contains(res.String(), "Hello, World!")
+}
+
+func TestCreateUnixDomainSocket_SocketExists(t *testing.T) {
+	assert := assert.New(t)
+
+	// 空きポートを確認
+	port, err := GetUnusedPort()
+	assert.NoError(err)
+	name := fmt.Sprintf("isunippets-%s-%d", t.Name(), port)
+
+	// Unix Domain Socket を作成
+	sockPath := path.Join(os.TempDir(), fmt.Sprintf("%s.sock", name))
+	listener, err := CreateUnixDomainSocket(sockPath)
+	defer listener.Close()
+	assert.NoError(err)
+
+	// 既に存在する Unix Domain Socket を作成
+	_, err = CreateUnixDomainSocket(sockPath)
+	assert.NoError(err)
+}
+
+func TestCreateUnixDomainSocket_FileExists(t *testing.T) {
+	assert := assert.New(t)
+
+	// 空きポートを確認
+	port, err := GetUnusedPort()
+	assert.NoError(err)
+	name := fmt.Sprintf("isunippets-%s-%d", t.Name(), port)
+
+	sockPath := path.Join(os.TempDir(), fmt.Sprintf("%s.sock", name))
+
+	// 既に存在するファイルを作成
+	file, err := os.Create(sockPath)
+	assert.NoError(err)
+	defer file.Close()
+
+	_, err = CreateUnixDomainSocket(sockPath)
+	assert.Error(err)
 }
 
 func TestGetUnusedPort(t *testing.T) {
